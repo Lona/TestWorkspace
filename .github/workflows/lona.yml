@@ -23,7 +23,7 @@ jobs:
       - name: Create Output Folder
         run: mkdir ./.lona-output
       - name: Generate flat JSON
-        run: lonac generate-json --worspace=. > ./.lona-output/flat-json.json
+        run: lonac flatten --workspace . > ./.lona-output/flat-json.json
       # - name: Generate Sketch library
       #   run: node -e "require('@lona/workspace-to-sketch-library')('.', './.lona-output/sketch-library.sketch')"
       - name: Bump version and push tag
