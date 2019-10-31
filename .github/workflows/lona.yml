@@ -1,0 +1,71 @@
+name: Lona
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: macOS-latest
+
+    steps:
+      - name: Check if Lona is enabled on this repo
+        id: lona
+        run: echo "use process.env.GITHUB_REPOSITORY to ping the backend and check if it is enabled. Ouput upload_url"
+      - uses: actions/checkout@v1
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "8.x"
+      - name: Install Lona Compiler
+        run: npm install -g lonac @lona/workspace-to-sketch-library
+      - name: Create Output Folder
+        run: mkdir ./.lona-output
+      - name: Generate flat JSON
+        run: lonac generate-json --worspace=. > ./.lona-output/flat-json.json
+      # - name: Generate Sketch library
+      #   run: node -e "require('@lona/workspace-to-sketch-library')('.', './.lona-output/sketch-library.sketch')"
+      - name: Bump version and push tag
+        id: tag_version
+        uses: anothrNick/github-tag-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          release_name: Release ${{ steps.tag_version.outputs.new_tag }}
+          draft: false
+          prerelease: false
+      # - name: Upload Sketch Library
+      #   id: upload_sketch_library
+      #   uses: actions/upload-release-asset@master
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./.lona-output/sketch-library.sketch
+      #     asset_name: library.sketch
+      #     asset_content_type: application/zip
+      - name: Upload Tokens List
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./.lona-output/flat-json.json
+          asset_name: tokens.json
+          asset_content_type: application/json
+      # - name: Generate Documentation Website
+      #   run: echo "use compiler to generate html"
+      #   env:
+      #     SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
+      # - name: Deploy Documentation Website
+      #   run: echo "deploy website to S3"
+      #   env:
+      #     UPLOAD_URL: ${{ steps.lona.outputs.upload_url }}
