@@ -18,11 +18,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "8.x"
-      - name: Cache node modules
-        uses: actions/cache@preview
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node
+      # - name: Cache node modules
+      #   uses: actions/cache@preview
+      #   with:
+      #     path: node_modules
+      #     key: ${{ runner.os }}-node
       - name: Install Lona Compiler
         run: npm install lonac @lona/workspace-to-sketch-library
       - name: Create Output Folder
