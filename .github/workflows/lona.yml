@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: macOS-latest
 
+    env:
+      OUTPUT_PATH: ./.lona-output
+
     steps:
       - name: Check if Lona is enabled on this repo
         id: lona
@@ -28,11 +31,11 @@ jobs:
       - name: Install Lona Compiler
         run: npm install lonac @lona/workspace-to-sketch-library
       - name: Create Output Folder
-        run: mkdir ./.lona-output
+        run: mkdir ${{ env.OUTPUT_PATH }}
       - name: Generate flat JSON
-        run: ./node_modules/.bin/lonac flatten --workspace . > ./.lona-output/flat-json.json
+        run: ./node_modules/.bin/lonac flatten --workspace . > ${{ env.OUTPUT_PATH }}/flat-json.json
       - name: Generate Sketch library
-        run: 'node -e "require(''@lona/workspace-to-sketch-library'')(process.cwd(), ''./.lona-output/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
+        run: 'node -e "require(''@lona/workspace-to-sketch-library'')(process.cwd(), ''${{ env.OUTPUT_PATH }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v1
@@ -56,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./.lona-output/sketch-library.sketch
+          asset_path: ${{ env.OUTPUT_PATH }}/sketch-library.sketch
           asset_name: library.sketch
           asset_content_type: application/zip
       - name: Upload Tokens List
@@ -65,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./.lona-output/flat-json.json
+          asset_path: ${{ env.OUTPUT_PATH }}/flat-json.json
           asset_name: tokens.json
           asset_content_type: application/json
       # - name: Generate Documentation Website
@@ -74,5 +77,5 @@ jobs:
       #     SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
       # - name: Deploy Documentation Website
       #   run: echo "deploy website to S3"
-      #   env:
+      #   with:
       #     UPLOAD_URL: ${{ steps.lona.outputs.upload_url }}
