@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Check if Lona is enabled on this repo
         id: lona
-        run: echo "use process.env.GITHUB_REPOSITORY to ping the backend and check if it is enabled. Ouput upload_url"
+        uses: Lona/lona-check-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v1
       - name: Setup Node
         uses: actions/setup-node@v1
