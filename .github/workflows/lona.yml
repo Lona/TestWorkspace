@@ -91,4 +91,4 @@ jobs:
         uses: Lona/lona-upload-action@v1
         with:
           folder_to_upload: ${{ env.OUTPUT_PATH }}
-          upload_url: ${{ steps.lona.outputs.output_url }}
+          upload_url: ${{ steps.lona.outputs.upload_url }}
