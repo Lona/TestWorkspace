@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macos-latest
 
     env:
       OUTPUT_PATH: ./.lona-output
@@ -60,8 +60,8 @@ jobs:
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
           release_name: Release ${{ steps.tag_version.outputs.new_tag }}
-          draft: false
-          prerelease: false
+          draft: "false"
+          prerelease: "false"
 
       - name: Publish the Sketch Library to the release
         id: upload_sketch_library
