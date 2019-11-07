@@ -88,7 +88,7 @@ jobs:
       #   env:
       #     SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
       - name: Deploy the documentation website
-        run: echo "deploy website to S3"
+        uses: Lona/lona-upload-action@v1
         with:
           folder_to_upload: ${{ env.OUTPUT_PATH }}
           upload_url: ${{ steps.lona.outputs.upload_url }}
