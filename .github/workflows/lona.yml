@@ -83,10 +83,10 @@ jobs:
           asset_path: ${{ env.OUTPUT_PATH }}/flat-json.json
           asset_name: tokens.json
           asset_content_type: application/json
-      # - name: Generate the documentation website
-      #   run: echo "use compiler to generate html"
-      #   env:
-      #     SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
+      - name: Generate the documentation website
+        run: echo "use compiler to generate html"
+        env:
+          SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
       - name: Deploy the documentation website
         uses: Lona/lona-upload-action@v1
         with:
