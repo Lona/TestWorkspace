@@ -18,31 +18,41 @@ jobs:
         uses: Lona/lona-check-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v1
+
+      - name: Get the latest version of the repository
+        uses: actions/checkout@v1
+
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: "8.x"
-      - name: Cache node modules
+
+      - name: Restore the dependencies cache
         uses: actions/cache@preview
         with:
           path: node_modules
           key: ${{ runner.os }}-node
-      - name: Install Lona Compiler
+
+      - name: Install the Lona Compiler
         run: npm install lonac @lona/workspace-to-sketch-library
+
       - name: Create Output Folder
-        run: mkdir ${{ env.OUTPUT_PATH }}
-      - name: Generate flat JSON
+        run: mkdir -p ${{ env.OUTPUT_PATH }}
+
+      - name: Extract the list of design tokens
         run: ./node_modules/.bin/lonac flatten --workspace . > ${{ env.OUTPUT_PATH }}/flat-json.json
-      - name: Generate Sketch library
+
+      - name: Generate the Sketch library
         run: 'node -e "require(''@lona/workspace-to-sketch-library'')(process.cwd(), ''${{ env.OUTPUT_PATH }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
-      - name: Bump version and push tag
+
+      - name: Bump the workspace version
         id: tag_version
         uses: mathieudutour/github-tag-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
-      - name: Create GitHub release
+
+      - name: Create a GitHub release
         id: create_release
         uses: actions/create-release@master
         env:
@@ -52,7 +62,8 @@ jobs:
           release_name: Release ${{ steps.tag_version.outputs.new_tag }}
           draft: false
           prerelease: false
-      - name: Upload Sketch Library
+
+      - name: Publish the Sketch Library to the release
         id: upload_sketch_library
         uses: actions/upload-release-asset@master
         env:
@@ -62,7 +73,8 @@ jobs:
           asset_path: ${{ env.OUTPUT_PATH }}/sketch-library.sketch
           asset_name: library.sketch
           asset_content_type: application/zip
-      - name: Upload Tokens List
+
+      - name: Publish the design tokens to the release
         uses: actions/upload-release-asset@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,11 +83,12 @@ jobs:
           asset_path: ${{ env.OUTPUT_PATH }}/flat-json.json
           asset_name: tokens.json
           asset_content_type: application/json
-      # - name: Generate Documentation Website
+      # - name: Generate the documentation website
       #   run: echo "use compiler to generate html"
       #   env:
       #     SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
-      # - name: Deploy Documentation Website
-      #   run: echo "deploy website to S3"
-      #   with:
-      #     UPLOAD_URL: ${{ steps.lona.outputs.upload_url }}
+      - name: Deploy the documentation website
+        run: echo "deploy website to S3"
+        with:
+          folder_to_upload: ${{ env.OUTPUT_PATH }}
+          upload_url: ${{ steps.lona.outputs.upload_url }}
