@@ -8,4 +8,8 @@ jobs:
 
     steps:
       - name: Delete outdated website documentation
-        run: echo "curl ${{ secrets.GITHUB_TOKEN }} and ${{ github.event.ref }} to delete the website"
+        uses: Lona/lona-clean-github-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          ref_type: ${{ github.event.ref_type }}
+          ref_name: ${{ github.event.ref }}
