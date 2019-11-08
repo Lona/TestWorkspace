@@ -16,7 +16,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          WORKFLOW_SUCCEEDED: ${{ success() }}
+          WORKFLOW_SUCCEEDED: ${{ job.status == 'success' }}
 
       - name: Get the latest version of the repository
         uses: actions/checkout@v1
