@@ -1,7 +1,7 @@
 # Colors
 
 ```tokens
-let primary: Color = #color(css: "#45CBFF")
+let primary: Color = #color(css: "#45CB00")
 ```
 
 ```tokens
