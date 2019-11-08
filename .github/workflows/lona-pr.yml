@@ -1,0 +1,39 @@
+name: Lona PR
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check if Lona is enabled on this repo
+        id: lona
+        uses: Lona/lona-github-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_succeeded: ${{ job.status == 'Success' }}
+          ref_name: ${{ github.ref }}
+
+      - name: Get the latest version of the repository
+        uses: actions/checkout@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "8.x"
+
+      - name: Restore the dependencies cache
+        uses: actions/cache@preview
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node
+
+      - name: Install the Lona Compiler
+        run: npm install lonac @lona/workspace-to-sketch-library
+
+      - name: Generate the documentation website
+        run: echo "use compiler to generate html"

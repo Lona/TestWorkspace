@@ -1,0 +1,11 @@
+name: Lona Delete
+
+on: delete
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Delete outdated website documentation
+        run: echo "curl ${{ secrets.GITHUB_TOKEN }} and ${{ github.event.ref }} to delete the website"

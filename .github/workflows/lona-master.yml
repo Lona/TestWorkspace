@@ -1,4 +1,4 @@
-name: Lona
+name: Lona Production
 
 on:
   push:
@@ -10,11 +10,20 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Bump the workspace version
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+
       - name: Check if Lona is enabled on this repo
         id: lona
         uses: Lona/lona-github-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_succeeded: ${{ job.status == 'Success' }}
+          ref_name: ${{ steps.tag_version.outputs.new_tag }}
 
       - name: Get the latest version of the repository
         uses: actions/checkout@v1
@@ -33,21 +42,11 @@ jobs:
       - name: Install the Lona Compiler
         run: npm install lonac @lona/workspace-to-sketch-library
 
-      - name: Create Output Folder
-        run: mkdir -p ${{ steps.lona.outputs.output_folder }}
-
       - name: Extract the list of design tokens
         run: ./node_modules/.bin/lonac flatten --workspace . > ${{ steps.lona.outputs.output_folder }}/flat-json.json
 
       - name: Generate the Sketch library
         run: 'node -e "require(''@lona/workspace-to-sketch-library'')(process.cwd(), ''${{ steps.lona.outputs.output_folder }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
-
-      - name: Bump the workspace version
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
 
       - name: Create a GitHub release
         id: create_release
