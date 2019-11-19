@@ -3,7 +3,7 @@ name: Lona Delete
 on: delete
 
 jobs:
-  build:
+  clean:
     runs-on: macos-latest
 
     steps:

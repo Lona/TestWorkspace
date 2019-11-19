@@ -36,4 +36,4 @@ jobs:
         run: npm install lonac @lona/workspace-to-sketch-library
 
       - name: Generate the documentation website
-        run: echo "use compiler to generate html"
+        run: ./node_modules/.bin/lonac documentation --workspace . > ${{ steps.lona.outputs.output_folder }}/docs.json

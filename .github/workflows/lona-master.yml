@@ -80,6 +80,6 @@ jobs:
           asset_name: tokens.json
           asset_content_type: application/json
       - name: Generate the documentation website
-        run: echo "use compiler to generate html"
+        run: ./node_modules/.bin/lonac documentation --workspace . > ${{ steps.lona.outputs.output_folder }}/docs.json
         env:
           SKETCH_LIBRARY_URL: ${{ steps.upload_sketch_library.outputs.browser_download_url }}
