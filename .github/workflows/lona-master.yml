@@ -46,7 +46,7 @@ jobs:
         run: ./node_modules/.bin/lonac flatten --workspace . > ${{ steps.lona.outputs.output_folder }}/flat-json.json
 
       - name: Generate the Sketch library
-        run: 'node -e "require(''@lona/workspace-to-sketch-library'')(process.cwd(), ''${{ steps.lona.outputs.output_folder }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
+        run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''${{ steps.lona.outputs.output_folder }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
 
       - name: Create a GitHub release
         id: create_release
