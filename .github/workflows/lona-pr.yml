@@ -35,5 +35,9 @@ jobs:
       - name: Install the Lona Compiler
         run: npm install lonac @lona/workspace-to-sketch-library
 
-      - name: Generate the documentation website
+      - name: Generate the documentation website (1/2)
         run: ./node_modules/.bin/lonac documentation --workspace . > ${{ steps.lona.outputs.output_folder }}/docs.json
+      - name: Generate the documentation website (2/2)
+        uses: Lona/lona-docs-github-action@v1
+        with:
+          output_folder: ${{ steps.lona.outputs.output_folder }}
