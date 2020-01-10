@@ -94,7 +94,8 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
-          echo "{ \"name\": \"@${${{ github.repository }},,}\", \"version\": \"${{ steps.tag_version.outputs.new_version }}\", \"publishConfig\": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "{ \"name\": \"@$REPO_LOWERCASE\", \"version\": \"${{ steps.tag_version.outputs.new_version }}\", \"publishConfig\": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
