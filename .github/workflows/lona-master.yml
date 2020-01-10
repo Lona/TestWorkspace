@@ -90,7 +90,7 @@ jobs:
         run: |
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
-          echo "{ \"name\": \"@$GITHUB_REPOSITORY\", \"version\": "$PACKAGE_VERSION", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" } }" >> package.json
+          echo "{ \"name\": \"@$GITHUB_REPOSITORY\", \"version\": "$PACKAGE_VERSION", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/$GITHUB_REPOSITORY\" }" >> package.json
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
