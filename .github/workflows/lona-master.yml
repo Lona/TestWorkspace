@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
+          registry-url: "https://npm.pkg.github.com"
 
       - name: Bump the workspace version
         id: tag_version
@@ -87,7 +88,6 @@ jobs:
 
       - name: Generate and publish npm package
         run: |
-          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN" >> $NPM_CONFIG_USERCONFIG
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
           echo "{ \"name\": \"@$GITHUB_REPOSITORY\", \"version\": "$PACKAGE_VERSION", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/$GITHUB_REPOSITORY\" }" >> package.json
