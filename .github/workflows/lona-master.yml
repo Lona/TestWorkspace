@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: "8.x"
+          node-version: "12.x"
 
       - name: Bump the workspace version
         id: tag_version
@@ -79,9 +79,8 @@ jobs:
           asset_path: ${{ steps.lona.outputs.output_folder }}/flat-json.json
           asset_name: tokens.json
           asset_content_type: application/json
-      - name: Generate the documentation website (1/2)
-        run: ./node_modules/.bin/lonac documentation --workspace . > ${{ steps.lona.outputs.output_folder }}/docs.json
-      - name: Generate the documentation website (2/2)
+
+      - name: Generate the documentation website
         uses: Lona/lona-docs-github-action@v1
         with:
           output_folder: ${{ steps.lona.outputs.output_folder }}
