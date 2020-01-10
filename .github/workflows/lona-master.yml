@@ -89,11 +89,9 @@ jobs:
         with:
           output_folder: ${{ steps.lona.outputs.output_folder }}
 
-      - name: Authenticate with GitHub package registry
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-
       - name: Generate and publish npm package
         run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
           echo "{ \"name\": \"@${{ github.repository }}\", \"version\": "${{ steps.tag_version.outputs.new_tag }}", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
