@@ -41,7 +41,11 @@ jobs:
           key: ${{ runner.os }}-node
 
       - name: Install the Lona Compiler
-        run: npm install lonac @lona/workspace-to-sketch-library
+        # Skip post-install scripts here, as a malicious
+        # script could steal NODE_AUTH_TOKEN.
+        run: npm install lonac @lona/workspace-to-sketch-library --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Extract the list of design tokens
         run: ./node_modules/.bin/lonac flatten --workspace . > ${{ steps.lona.outputs.output_folder }}/flat-json.json
