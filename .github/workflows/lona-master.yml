@@ -20,7 +20,7 @@ jobs:
 
       - name: Bump the workspace version
         id: tag_version
-        uses: mathieudutour/github-tag-action@v1
+        uses: mathieudutour/github-tag-action@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
@@ -94,7 +94,7 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
-          echo "{ \"name\": \"@${{ github.repository }}\", \"version\": "${{ steps.tag_version.outputs.new_tag }}", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
+          echo "{ \"name\": \"@${{ github.repository }}\", \"version\": \"${{ steps.tag_version.outputs.new_version }}\", \"publishConfig\": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
