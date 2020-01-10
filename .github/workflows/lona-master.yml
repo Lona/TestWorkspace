@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
-          registry-url: https://npm.pkg.github.com/Lona
+          registry-url: //npm.pkg.github.com/:_authToken=${{ github.secret }}
 
       - name: Bump the workspace version
         id: tag_version
@@ -86,11 +86,11 @@ jobs:
         with:
           output_folder: ${{ steps.lona.outputs.output_folder }}
 
-      - name: Generate npm package
+      - name: Generate and publish npm package
         run: |
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
-          echo "{ name: \"@$GITHUB_REPOSITORY\", version: "$PACKAGE_VERSION"}" >> package.json
+          echo "{ \"name\": \"@$GITHUB_REPOSITORY\", \"version\": "$PACKAGE_VERSION", "publishConfig": { \"registry\": \"https://npm.pkg.github.com/\" } }" >> package.json
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
