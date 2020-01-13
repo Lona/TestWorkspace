@@ -191,11 +191,11 @@ jobs:
         with:
           node-version: "12.x"
 
-      - name: Install the Lona Compiler
-        run: npm install lonac
-
       - name: Install cocoapods-generate
         run: gem install cocoapods-generate
+
+      - name: Install the Lona Compiler
+        run: npm install lonac
 
       - name: Generate Swift sources
         run: ./node_modules/.bin/lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
