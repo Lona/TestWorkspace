@@ -181,6 +181,7 @@ jobs:
           while read p; do
             echo "$p"
           done <.__lona-artifact-path/variables.txt
+          echo "::set-output name=repo_name::$(echo "${{ github.repository }}" | tr '/' '_')"
         id: variables
 
       - name: Get the latest version of the repository
@@ -198,20 +199,20 @@ jobs:
         run: npm install -g lonac
 
       - name: Generate Swift sources
-        run: lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
+        run: |
+          lonac workspace --workspace=. --target=swift --output=./.lona-pod/${{ steps.variables.outputs.repo_name }}/Sources
 
       - name: Create podspec
         run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | tr '/' '_')
           echo "Pod::Spec.new do |s|
-            s.name         = \"$REPO_NAME\"
+            s.name         = \"${{ steps.variables.outputs.repo_name }}\"
             s.version      = \"${{ steps.variables.outputs.new_version }}\"
             s.summary      = \"A pod for the ${{ github.repository }} Lona Workspace.\"
             s.homepage     = \"https://github.com/${{ github.repository }}\"
             s.license      = \"None\"
             s.author       = { \"Lona\" => \"support+pod@lona.design\" }
             s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
-            s.source_files  = \"Sources/**/*.{m,h,swift}\"
+            s.source_files  = \"${{ steps.variables.outputs.repo_name }}/Sources/**/*.{m,h,swift}\"
             s.ios.deployment_target = \"10\"
             s.macos.deployment_target = \"10.12\"
           end" >> pod.podspec
@@ -222,7 +223,7 @@ jobs:
         working-directory: ./.lona-pod
 
       - name: Archive pod
-        run: zip -r ./.lona-pod-archive.zip ./.lona-pod
+        run: zip -r ./.lona-pod-archive.zip ./.lona-pod/${{ steps.variables.outputs.repo_name }}
 
       - name: Publish the podspec to the GitHub release
         uses: actions/upload-release-asset@master
