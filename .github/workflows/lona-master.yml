@@ -195,10 +195,10 @@ jobs:
         run: gem install cocoapods-generate
 
       - name: Install the Lona Compiler
-        run: npm install lonac
+        run: npm install -g lonac
 
       - name: Generate Swift sources
-        run: ./node_modules/.bin/lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
+        run: lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
 
       - name: Create podspec
         run: |
