@@ -206,9 +206,10 @@ jobs:
           echo "Pod::Spec.new do |s|
             s.name         = \"$REPO_NAME\"
             s.version      = \"${{ steps.variables.outputs.new_version }}\"
-            s.summary      = \"\"
+            s.summary      = \"A pod for the ${{ github.repository }} Lona Workspace.\"
             s.homepage     = \"https://github.com/${{ github.repository }}\"
             s.license      = \"None\"
+            s.author       = { "Lona" => "support+pod@lona.design" }
             s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
             s.source_files  = \"Sources/**/*.{m,h,swift}\"
             s.ios.deployment_target = \"10\"
