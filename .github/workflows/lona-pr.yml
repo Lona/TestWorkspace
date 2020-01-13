@@ -6,8 +6,8 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: macos-latest
+  documentation:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Get the latest version of the repository
@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-node
 
       - name: Install the Lona Compiler
-        run: npm install lonac @lona/workspace-to-sketch-library
+        run: npm install lonac
 
       - name: Generate the documentation website
         uses: Lona/lona-docs-github-action@v1
