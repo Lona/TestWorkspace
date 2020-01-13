@@ -200,7 +200,7 @@ jobs:
 
       - name: Generate Swift sources
         run: |
-          lonac workspace --workspace=. --target=swift --output=./.lona-pod/${{ steps.variables.outputs.repo_name }}/Sources
+          lonac workspace --workspace=. --target=swift --output=./.lona-pod/${{ steps.variables.outputs.repo_name }}/Source
 
       - name: Create podspec
         run: |
@@ -212,7 +212,20 @@ jobs:
             s.license      = \"None\"
             s.author       = { \"Lona\" => \"support+pod@lona.design\" }
             s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
-            s.source_files  = \"${{ steps.variables.outputs.repo_name }}/Sources/**/*.{m,h,swift}\"
+            s.source_files  = \"${{ steps.variables.outputs.repo_name }}/Source/**/*.{m,h,swift}\"
+            s.ios.deployment_target = \"10\"
+            s.macos.deployment_target = \"10.12\"
+          end" >> pod.podspec
+          cd ${{ steps.variables.outputs.repo_name }}
+          echo "Pod::Spec.new do |s|
+            s.name         = \"${{ steps.variables.outputs.repo_name }}\"
+            s.version      = \"${{ steps.variables.outputs.new_version }}\"
+            s.summary      = \"A pod for the ${{ github.repository }} Lona Workspace.\"
+            s.homepage     = \"https://github.com/${{ github.repository }}\"
+            s.license      = \"None\"
+            s.author       = { \"Lona\" => \"support+pod@lona.design\" }
+            s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
+            s.source_files  = \"Source/**/*.{m,h,swift}\"
             s.ios.deployment_target = \"10\"
             s.macos.deployment_target = \"10.12\"
           end" >> pod.podspec
