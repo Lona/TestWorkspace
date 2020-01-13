@@ -209,10 +209,10 @@ jobs:
             s.summary      = \"\"
             s.homepage     = \"https://github.com/${{ github.repository }}\"
             s.license      = \"None\"
-            s.source       = { :http => 'https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip' }
-            s.source_files  = "Sources/**/*.{m,h,swift}"
-            s.ios.deployment_target = '10'
-            s.macos.deployment_target = '10.12'
+            s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
+            s.source_files  = \"Sources/**/*.{m,h,swift}\"
+            s.ios.deployment_target = \"10\"
+            s.macos.deployment_target = \"10.12\"
           end" >> pod.podspec
         working-directory: ./.lona-pod
 
