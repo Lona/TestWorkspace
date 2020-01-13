@@ -68,7 +68,7 @@ jobs:
       - name: Pass variables to other actions (1/2)
         run: |
           mkdir -p .artifact-path
-          echo "::set-output name=upload_url,::${{ steps.create_release.outputs.upload_url }}\n::set-output name=new_version,::${{ steps.tag_version.outputs.new_version }}\n" > .artifact-path/variables.txt
+          echo -e "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}\n::set-output name=new_version::${{ steps.tag_version.outputs.new_version }}\n" > .artifact-path/variables.txt
       - name: Pass variables to other actions (2/2)
         uses: actions/upload-artifact@v1
         with:
@@ -86,7 +86,9 @@ jobs:
           path: .artifact-path
       - name: Get variables from build-documentation (2/2)
         run: |
-          cat .artifact-path/variables.txt
+          while read p; do
+            echo "$p"
+          done <.artifact-path/variables.txt
         id: variables
 
       - name: Get the latest version of the repository
@@ -125,7 +127,9 @@ jobs:
           path: .artifact-path
       - name: Get variables from build-documentation (2/2)
         run: |
-          cat .artifact-path/variables.txt
+          while read p; do
+            echo "$p"
+          done <.artifact-path/variables.txt
         id: variables
 
       - name: Get the latest version of the repository
