@@ -6,8 +6,8 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: macos-latest
+  build-documentation:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Get the latest version of the repository
@@ -33,24 +33,11 @@ jobs:
           workflow_succeeded: ${{ job.status == 'Success' }}
           ref_name: refs/tags/${{ steps.tag_version.outputs.new_tag || steps.tag_version.outputs.previous_tag }}
 
-      - name: Restore the dependencies cache
-        uses: actions/cache@preview
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node
-
       - name: Install the Lona Compiler
-        # Skip post-install scripts here, as a malicious
-        # script could steal NODE_AUTH_TOKEN.
-        run: npm install lonac @lona/workspace-to-sketch-library --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm install lonac
 
       - name: Extract the list of design tokens
         run: ./node_modules/.bin/lonac flatten --workspace . > ${{ steps.lona.outputs.output_folder }}/flat-json.json
-
-      - name: Generate the Sketch library
-        run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''${{ steps.lona.outputs.output_folder }}/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
 
       - name: Create a GitHub release
         id: create_release
@@ -62,17 +49,6 @@ jobs:
           release_name: Release ${{ steps.tag_version.outputs.new_tag }}
           draft: "false"
           prerelease: "false"
-
-      - name: Publish the Sketch Library to the release
-        id: upload_sketch_library
-        uses: actions/upload-release-asset@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.lona.outputs.output_folder }}/sketch-library.sketch
-          asset_name: library.sketch
-          asset_content_type: application/zip
 
       - name: Publish the design tokens to the release
         uses: actions/upload-release-asset@master
@@ -89,13 +65,84 @@ jobs:
         with:
           output_folder: ${{ steps.lona.outputs.output_folder }}
 
+      - name: Pass variables to other actions
+        run: |
+          mkdir -p .artifact-path
+          echo "::set-output name=upload_url,::${{ steps.create_release.outputs.upload_url }}\n::set-output name=new_version,::${{ steps.tag_version.outputs.new_version }}\n" > .artifact-path/variables.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: lona-variables
+          path: .artifact-path
+
+  build-sketch-library:
+    runs-on: macos-latest
+    needs: [build-documentation]
+    steps:
+      - name: Get variables from build-documentation
+        uses: actions/download-artifact@v1
+        with:
+          name: lona-variables
+          path: .artifact-path
+      - run: |
+          cat .artifact-path/variables.txt
+        id: variables
+
+      - name: Get the latest version of the repository
+        uses: actions/checkout@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Install the Lona Compiler
+        run: npm install lonac @lona/workspace-to-sketch-library
+
+      - name: Generate the Sketch library
+        run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''.artifact-path/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
+
+      - name: Publish the Sketch Library to the release
+        id: upload_sketch_library
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.variables.outputs.upload_url }}
+          asset_path: .artifact-path/sketch-library.sketch
+          asset_name: library.sketch
+          asset_content_type: application/zip
+
+  build-npm-package:
+    runs-on: ubuntu-latest
+    needs: [build-documentation]
+    steps:
+      - name: Get variables from build-documentation
+        uses: actions/download-artifact@v1
+        with:
+          name: lona-variables
+          path: .artifact-path
+      - run: |
+          cat .artifact-path/variables.txt
+        id: variables
+
+      - name: Get the latest version of the repository
+        uses: actions/checkout@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Install the Lona Compiler
+        run: npm install lonac
+
       - name: Generate and publish npm package
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
           ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__secret_npm_output
           cd __secret_npm_output
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "{ \"name\": \"@$REPO_LOWERCASE\", \"version\": \"${{ steps.tag_version.outputs.new_version }}\", \"publishConfig\": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
+          echo "{ \"name\": \"@$REPO_LOWERCASE\", \"version\": \"${{ steps.variables.outputs.new_version }}\", \"publishConfig\": { \"registry\": \"https://npm.pkg.github.com/\" }, \"repository\": \"git://github.com/${{ github.repository }}\" }" >> package.json
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
