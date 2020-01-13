@@ -223,7 +223,8 @@ jobs:
         working-directory: ./.lona-pod
 
       - name: Archive pod
-        run: zip -r ./.lona-pod-archive.zip ./.lona-pod/${{ steps.variables.outputs.repo_name }}
+        run: zip -r ../lona-pod-archive.zip *
+        working-directory: ./.lona-pod/${{ steps.variables.outputs.repo_name }}
 
       - name: Publish the podspec to the GitHub release
         uses: actions/upload-release-asset@master
@@ -241,6 +242,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.variables.outputs.upload_url }}
-          asset_path: ./.lona-pod-archive.zip
+          asset_path: ./lona-pod-archive.zip
           asset_name: pod.zip
           asset_content_type: application/zip
