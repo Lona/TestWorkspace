@@ -202,7 +202,7 @@ jobs:
         run: |
           lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources/${{ steps.variables.outputs.repo_name }}
 
-      - name: Create package.swift
+      - name: Create Package.swift
         run: |
           echo "// swift-tools-version:5.1
 
@@ -223,9 +223,6 @@ jobs:
                   .target(
                       name: \"${{ steps.variables.outputs.repo_name }}\",
                       dependencies: []),
-                  .testTarget(
-                      name: \"${{ steps.variables.outputs.repo_name }}Tests\",
-                      dependencies: [\"${{ steps.variables.outputs.repo_name }}\"]),
               ]
           )" >> Package.swift
         working-directory: ./.lona-pod
@@ -234,11 +231,11 @@ jobs:
         run: swift package generate-xcodeproj
         working-directory: ./.lona-pod
 
-      - name: Archive pod
+      - name: Archive the framework
         run: carthage build --platform iOS --archive
         working-directory: ./.lona-pod
 
-      - name: Publish the Pod to the GitHub release
+      - name: Publish the framework to the GitHub release
         uses: actions/upload-release-asset@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
