@@ -222,7 +222,7 @@ jobs:
         working-directory: ./.lona-pod
 
       - name: Archive pod
-        run: zip -r ./.lona-pod-archive.zip ./lona-pod
+        run: zip -r ./.lona-pod-archive.zip ./.lona-pod
 
       - name: Publish the podspec to the GitHub release
         uses: actions/upload-release-asset@master
