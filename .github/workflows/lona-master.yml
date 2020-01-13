@@ -200,54 +200,43 @@ jobs:
 
       - name: Generate Swift sources
         run: |
-          lonac workspace --workspace=. --target=swift --output=./.lona-pod/${{ steps.variables.outputs.repo_name }}/Source
+          lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources/${{ steps.variables.outputs.repo_name }}
 
-      - name: Create podspec
+      - name: Create package.swift
         run: |
-          echo "Pod::Spec.new do |s|
-            s.name         = \"${{ steps.variables.outputs.repo_name }}\"
-            s.version      = \"${{ steps.variables.outputs.new_version }}\"
-            s.summary      = \"A pod for the ${{ github.repository }} Lona Workspace.\"
-            s.homepage     = \"https://github.com/${{ github.repository }}\"
-            s.license      = \"None\"
-            s.author       = { \"Lona\" => \"support+pod@lona.design\" }
-            s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
-            s.source_files  = \"${{ steps.variables.outputs.repo_name }}/Source/**/*.{m,h,swift}\"
-            s.ios.deployment_target = \"10\"
-            s.macos.deployment_target = \"10.12\"
-          end" >> pod.podspec
-          cd ${{ steps.variables.outputs.repo_name }}
-          echo "Pod::Spec.new do |s|
-            s.name         = \"${{ steps.variables.outputs.repo_name }}\"
-            s.version      = \"${{ steps.variables.outputs.new_version }}\"
-            s.summary      = \"A pod for the ${{ github.repository }} Lona Workspace.\"
-            s.homepage     = \"https://github.com/${{ github.repository }}\"
-            s.license      = \"None\"
-            s.author       = { \"Lona\" => \"support+pod@lona.design\" }
-            s.source       = { :http => \"https://github.com/${{ github.repository }}/releases/download/${{ steps.variables.outputs.new_tag }}/pod.zip\" }
-            s.source_files  = \"Source/**/*.{m,h,swift}\"
-            s.ios.deployment_target = \"10\"
-            s.macos.deployment_target = \"10.12\"
-          end" >> pod.podspec
+          echo "// swift-tools-version:5.1
+
+          import PackageDescription
+
+          let package = Package(
+              name: \"${{ steps.variables.outputs.repo_name }}\",
+              platforms: [
+                .iOS(.v10),
+              ],
+              products: [
+                  .library(
+                      name: \"${{ steps.variables.outputs.repo_name }}\",
+                      targets: [\"${{ steps.variables.outputs.repo_name }}\"]),
+              ],
+              dependencies: [],
+              targets: [
+                  .target(
+                      name: \"${{ steps.variables.outputs.repo_name }}\",
+                      dependencies: []),
+                  .testTarget(
+                      name: \"${{ steps.variables.outputs.repo_name }}Tests\",
+                      dependencies: [\"${{ steps.variables.outputs.repo_name }}\"]),
+              ]
+          )" >> Package.swift
         working-directory: ./.lona-pod
 
-      - name: Generate Workspace
-        run: pod gen ./pod.podspec --gen-directory=.
+      - name: Generate Xcode Project
+        run: swift package generate-xcodeproj
         working-directory: ./.lona-pod
 
       - name: Archive pod
-        run: zip -r ../lona-pod-archive.zip *
-        working-directory: ./.lona-pod/${{ steps.variables.outputs.repo_name }}
-
-      - name: Publish the podspec to the GitHub release
-        uses: actions/upload-release-asset@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.variables.outputs.upload_url }}
-          asset_path: ./.lona-pod/pod.podspec
-          asset_name: pod.podspec
-          asset_content_type: text/plain
+        run: carthage build --platform iOS --archive
+        working-directory: ./.lona-pod
 
       - name: Publish the Pod to the GitHub release
         uses: actions/upload-release-asset@master
@@ -255,6 +244,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.variables.outputs.upload_url }}
-          asset_path: ./.lona-pod/lona-pod-archive.zip
-          asset_name: pod.zip
+          asset_path: ./.lona-pod/${{ steps.variables.outputs.repo_name }}.framework.zip
+          asset_name: ${{ steps.variables.outputs.repo_name }}.framework.zip
           asset_content_type: application/zip
