@@ -192,47 +192,57 @@ jobs:
         with:
           node-version: "12.x"
 
-      - name: Install cocoapods-generate
-        run: gem install cocoapods-generate
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
       - name: Install the Lona Compiler
         run: npm install -g lonac
 
       - name: Generate Swift sources
         run: |
-          lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources/${{ steps.variables.outputs.repo_name }}
+          lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
 
       - name: Create Package.swift
         run: |
-          echo "// swift-tools-version:5.1
+          echo "name: '${{ steps.variables.outputs.repo_name }}'
 
-          import PackageDescription
+          ############
+          # Options
+          ############
 
-          let package = Package(
-              name: \"${{ steps.variables.outputs.repo_name }}\",
-              platforms: [
-                .iOS(.v10),
-              ],
-              products: [
-                  .library(
-                      name: \"${{ steps.variables.outputs.repo_name }}\",
-                      targets: [\"${{ steps.variables.outputs.repo_name }}\"]),
-              ],
-              dependencies: [],
-              targets: [
-                  .target(
-                      name: \"${{ steps.variables.outputs.repo_name }}\",
-                      dependencies: []),
-              ]
-          )" >> Package.swift
+          options:
+            minimumXcodeGenVersion: 2.10
+            groupSortPosition: top
+            generateEmptyDirectories: true
+            deploymentTarget:
+              iOS: '11.0'
+              macOS: '10.14'
+
+          ############
+          # Targets
+          ############
+
+          targets:
+            '${{ steps.variables.outputs.repo_name }}':
+              type: framework
+              platform: [iOS, macOS]
+
+              # scheme
+              scheme:
+                gatherCoverageData: true
+
+              # sources
+              sources:
+                - Sources
+          " >> project.yml
         working-directory: ./.lona-pod
 
       - name: Generate Xcode Project
-        run: swift package generate-xcodeproj
+        run: xcodegen
         working-directory: ./.lona-pod
 
       - name: Archive the framework
-        run: carthage build --platform iOS --archive
+        run: carthage build --archive
         working-directory: ./.lona-pod
 
       - name: Publish the framework to the GitHub release
