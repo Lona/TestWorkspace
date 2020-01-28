@@ -242,8 +242,17 @@ jobs:
         working-directory: ./.lona-pod
 
       - name: Archive the framework
-        run: carthage build --archive
+        run: |
+          mkdir -p .__lona-build-output
+          carthage build --archive --log-path=./.__lona-build-output/carthage-xcodebuild.log
         working-directory: ./.lona-pod
+
+      - name: Upload build output if it failed
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: lona-xcode-build-output
+          path: ./.lona-pod/.__lona-build-output
 
       - name: Publish the framework to the GitHub release
         uses: actions/upload-release-asset@master
