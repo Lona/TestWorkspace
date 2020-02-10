@@ -34,7 +34,7 @@ jobs:
           ref_name: refs/tags/${{ steps.tag_version.outputs.new_tag || steps.tag_version.outputs.previous_tag }}
 
       - name: Install the Lona Compiler
-        run: npm install @lona/compiler
+        run: npm install -g @lona/compiler
 
       - name: Extract the list of design tokens
         run: lona convert . --format=tokens > ${{ steps.lona.outputs.output_folder }}/flat-json.json
@@ -143,7 +143,7 @@ jobs:
           node-version: "12.x"
 
       - name: Install the Lona Compiler
-        run: npm install @lona/compiler
+        run: npm install -g @lona/compiler
 
       - name: Generate js sources
         run: lona convert . --format=js --output=./__lona-npm-output
