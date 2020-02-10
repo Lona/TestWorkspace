@@ -32,9 +32,6 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node
 
-      - name: Install the Lona Compiler
-        run: npm install lonac
-
       - name: Generate the documentation website
         uses: Lona/lona-docs-github-action@v1
         with:

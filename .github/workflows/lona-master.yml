@@ -34,10 +34,10 @@ jobs:
           ref_name: refs/tags/${{ steps.tag_version.outputs.new_tag || steps.tag_version.outputs.previous_tag }}
 
       - name: Install the Lona Compiler
-        run: npm install lonac
+        run: npm install @lona/compiler
 
       - name: Extract the list of design tokens
-        run: ./node_modules/.bin/lonac flatten --workspace . > ${{ steps.lona.outputs.output_folder }}/flat-json.json
+        run: lona convert . --format=tokens > ${{ steps.lona.outputs.output_folder }}/flat-json.json
 
       - name: Create a GitHub release
         id: create_release
@@ -103,7 +103,7 @@ jobs:
           node-version: "12.x"
 
       - name: Install the Lona Compiler
-        run: npm install lonac @lona/workspace-to-sketch-library
+        run: npm install @lona/workspace-to-sketch-library
 
       - name: Generate the Sketch library
         run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''.__lona-artifact-path/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
@@ -143,10 +143,10 @@ jobs:
           node-version: "12.x"
 
       - name: Install the Lona Compiler
-        run: npm install lonac
+        run: npm install @lona/compiler
 
       - name: Generate js sources
-        run: ./node_modules/.bin/lonac workspace --workspace . --target js --output ./__lona-npm-output
+        run: lona convert . --format=js --output=./__lona-npm-output
 
       - name: Generate package.json
         run: |
@@ -196,11 +196,11 @@ jobs:
         run: brew install xcodegen
 
       - name: Install the Lona Compiler
-        run: npm install -g lonac
+        run: npm install -g @lona/compiler
 
       - name: Generate Swift sources
         run: |
-          lonac workspace --workspace=. --target=swift --output=./.lona-pod/Sources
+          lona convert . --format=swift --output=./.lona-pod/Sources
 
       - name: Create Package.swift
         run: |
