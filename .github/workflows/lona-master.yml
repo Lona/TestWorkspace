@@ -103,7 +103,7 @@ jobs:
           node-version: "12.x"
 
       - name: Install the Lona Compiler
-        run: npm install @lona/workspace-to-sketch-library
+        run: npm install lonac @lona/workspace-to-sketch-library
 
       - name: Generate the Sketch library
         run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''.__lona-artifact-path/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
