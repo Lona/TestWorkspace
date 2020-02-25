@@ -94,6 +94,9 @@ jobs:
         with:
           name: sketch-library
           path: .__lona-artifact-path
+          
+      - name: Move the Sketch library to upload it
+        run: mv .__lona-artifact-path/sketch-library.sketch ${{ steps.lona.outputs.output_folder }}/library.sketch
 
       - name: Publish the Sketch Library to the GitHub release
         uses: actions/upload-release-asset@master
@@ -101,7 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: .__lona-artifact-path/sketch-library.sketch
+          asset_path: ${{ steps.lona.outputs.output_folder }}/library.sketch
           asset_name: library.sketch
           asset_content_type: application/zip
 
