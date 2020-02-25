@@ -6,9 +6,32 @@ on:
       - master
 
 jobs:
+  sketch-library:
+    runs-on: macos-latest
+    steps:
+      - name: Get the latest version of the repository
+        uses: actions/checkout@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Install the Lona Compiler
+        run: npm install lonac @lona/workspace-to-sketch-library
+
+      - name: Generate the Sketch library
+        run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''.__lona-artifact-path/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
+
+      - name: Pass the library to other actions
+        uses: actions/upload-artifact@v1
+        with:
+          name: sketch-library
+          path: .__lona-artifact-path
+
   documentation:
     runs-on: ubuntu-latest
-
+    needs: [sketch-library]
     steps:
       - name: Get the latest version of the repository
         uses: actions/checkout@v1
@@ -20,7 +43,7 @@ jobs:
 
       - name: Bump the workspace version
         id: tag_version
-        uses: mathieudutour/github-tag-action@v3
+        uses: mathieudutour/github-tag-action@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
@@ -36,8 +59,13 @@ jobs:
       - name: Install the Lona Compiler
         run: npm install -g @lona/compiler
 
-      - name: Extract the list of design tokens
-        run: lona convert . --format=tokens > ${{ steps.lona.outputs.output_folder }}/flat-json.json
+      - name: Generate the documentation website
+        uses: Lona/lona-docs-github-action@v1
+        with:
+          output_folder: ${{ steps.lona.outputs.output_folder }}
+          path_prefix: __lona-docs__/secret/prefix
+          version: ${{ steps.tag_version.outputs.new_tag }}
+          base_url: __lona-docs__/secret/base-url
 
       - name: Create a GitHub release
         id: create_release
@@ -47,6 +75,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
           release_name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
           draft: "false"
           prerelease: "false"
 
@@ -60,53 +89,11 @@ jobs:
           asset_name: tokens.json
           asset_content_type: application/json
 
-      - name: Generate the documentation website
-        uses: Lona/lona-docs-github-action@v1
-        with:
-          output_folder: ${{ steps.lona.outputs.output_folder }}
-
-      - name: Pass variables to other actions (1/2)
-        run: |
-          mkdir -p .__lona-artifact-path
-          echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}
-          ::set-output name=new_version::${{ steps.tag_version.outputs.new_version }}
-          ::set-output name=new_tag::${{ steps.tag_version.outputs.new_tag }}
-          " > .__lona-artifact-path/variables.txt
-      - name: Pass variables to other actions (2/2)
-        uses: actions/upload-artifact@v1
-        with:
-          name: lona-variables
-          path: .__lona-artifact-path
-
-  sketch-library:
-    runs-on: macos-latest
-    needs: [documentation]
-    steps:
-      - name: Get variables from documentation (1/2)
+      - name: Get the Sketch library from previous action
         uses: actions/download-artifact@v1
         with:
-          name: lona-variables
+          name: sketch-library
           path: .__lona-artifact-path
-      - name: Get variables from documentation (2/2)
-        run: |
-          while read p; do
-            echo "$p"
-          done <.__lona-artifact-path/variables.txt
-        id: variables
-
-      - name: Get the latest version of the repository
-        uses: actions/checkout@v1
-
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: "12.x"
-
-      - name: Install the Lona Compiler
-        run: npm install lonac @lona/workspace-to-sketch-library
-
-      - name: Generate the Sketch library
-        run: 'node -e "require(''@lona/workspace-to-sketch-library'').default(process.cwd(), ''.__lona-artifact-path/sketch-library.sketch'', { logFunction: console.log.bind(console) }).catch(err => { console.log(err); process.exit(1); })"'
 
       - name: Publish the Sketch Library to the GitHub release
         uses: actions/upload-release-asset@master
@@ -118,6 +105,19 @@ jobs:
           asset_name: library.sketch
           asset_content_type: application/zip
 
+      - name: Pass variables to other actions (1/2)
+        run: |
+          mkdir -p .__lona-variables-path
+          echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}
+          ::set-output name=new_version::${{ steps.tag_version.outputs.new_version }}
+          ::set-output name=new_tag::${{ steps.tag_version.outputs.new_tag }}
+          " > .__lona-variables-path/variables.txt
+      - name: Pass variables to other actions (2/2)
+        uses: actions/upload-artifact@v1
+        with:
+          name: lona-variables
+          path: .__lona-variables-path
+
   npm-package:
     runs-on: ubuntu-latest
     needs: [documentation]
@@ -126,12 +126,12 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: lona-variables
-          path: .__lona-artifact-path
+          path: .__lona-variables-path
       - name: Get variables from documentation (2/2)
         run: |
           while read p; do
             echo "$p"
-          done <.__lona-artifact-path/variables.txt
+          done <.__lona-variables-path/variables.txt
         id: variables
 
       - name: Get the latest version of the repository
@@ -175,12 +175,12 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: lona-variables
-          path: .__lona-artifact-path
+          path: .__lona-variables-path
       - name: Get variables from documentation (2/2)
         run: |
           while read p; do
             echo "$p"
-          done <.__lona-artifact-path/variables.txt
+          done <.__lona-variables-path/variables.txt
           echo "::set-output name=repo_name::$(echo "${{ github.repository }}" | tr '/' '_')"
         id: variables
 
