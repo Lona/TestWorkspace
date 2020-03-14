@@ -55,6 +55,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_succeeded: ${{ job.status == 'Success' }}
           ref_name: refs/tags/${{ steps.tag_version.outputs.new_tag || steps.tag_version.outputs.previous_tag }}
+          lona_api_base_url: https://api.lona.design/dev
 
       - name: Install the Lona Compiler
         run: npm install -g @lona/compiler
@@ -64,7 +65,7 @@ jobs:
         with:
           output_folder: ${{ steps.lona.outputs.output_folder }}
           path_prefix: __lona-docs__/secret/prefix
-          version: ${{ steps.tag_version.outputs.new_tag }}
+          version: ${{ steps.tag_version.outputs.new_version }}
           base_url: __lona-docs__/secret/base-url
 
       - name: Create a GitHub release
@@ -94,7 +95,7 @@ jobs:
         with:
           name: sketch-library
           path: .__lona-artifact-path
-          
+
       - name: Move the Sketch library to upload it
         run: mv .__lona-artifact-path/sketch-library.sketch ${{ steps.lona.outputs.output_folder }}/library.sketch
 
@@ -204,15 +205,12 @@ jobs:
       - name: Generate Swift sources
         run: |
           lona convert . --format=swift --output=./.lona-pod/Sources
-
       - name: Create Package.swift
         run: |
           echo "name: '${{ steps.variables.outputs.repo_name }}'
-
           ############
           # Options
           ############
-
           options:
             minimumXcodeGenVersion: 2.10
             groupSortPosition: top
@@ -220,20 +218,16 @@ jobs:
             deploymentTarget:
               iOS: '11.0'
               macOS: '10.14'
-
           ############
           # Targets
           ############
-
           targets:
             '${{ steps.variables.outputs.repo_name }}':
               type: framework
               platform: [iOS, macOS]
-
               # scheme
               scheme:
                 gatherCoverageData: true
-
               # sources
               sources:
                 - Sources
