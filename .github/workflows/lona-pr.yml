@@ -27,12 +27,6 @@ jobs:
           ref_name: ${{ github.ref }}
           lona_api_base_url: https://api.lona.design/dev
 
-      - name: Restore the dependencies cache
-        uses: actions/cache@preview
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node
-
       - name: Generate the documentation website
         uses: Lona/lona-docs-github-action@v1
         with:
